@@ -17,11 +17,11 @@ from "../config";
 
 
 
-const TILE=20;
+const TILE = 20;
 
-const WIDTH=400;
+const WIDTH = 400;
 
-const HEIGHT=400;
+const HEIGHT = 400;
 
 
 
@@ -36,13 +36,11 @@ export default function Game({
 }){
 
 
-    const canvasRef =
-    useRef(null);
+    const canvasRef = useRef(null);
 
 
 
-    const snake =
-    useRef([
+    const snake = useRef([
 
         {
             x:10,
@@ -53,29 +51,37 @@ export default function Game({
 
 
 
-    const direction =
-    useRef({
+    const direction = useRef({
 
         x:1,
+
         y:0
 
     });
 
 
 
-    const apple =
-    useRef({
+    const apple = useRef({
 
         x:15,
+
         y:15
 
     });
 
 
 
-    const [started,setStarted]=useState(false);
+    const [started,setStarted] =
+    useState(false);
 
-    const [gameOver,setGameOver]=useState(false);
+
+    const [gameOver,setGameOver] =
+    useState(false);
+
+
+
+    const [touchStart,setTouchStart] =
+    useState(null);
 
 
 
@@ -101,6 +107,175 @@ export default function Game({
 
 
 
+    function changeDirection(newDirection){
+
+
+        const current =
+        direction.current;
+
+
+
+        // prevent reversing into yourself
+
+        if(
+
+            newDirection.x === -current.x &&
+
+            newDirection.y === -current.y
+
+        ){
+
+            return;
+
+        }
+
+
+
+        direction.current =
+        newDirection;
+
+
+    }
+
+
+
+
+
+    function handleTouchStart(e){
+
+
+        const touch =
+        e.touches[0];
+
+
+        setTouchStart({
+
+            x:touch.clientX,
+
+            y:touch.clientY
+
+        });
+
+
+    }
+
+
+
+
+
+
+    function handleTouchEnd(e){
+
+
+        if(!touchStart)
+            return;
+
+
+
+        const touch =
+        e.changedTouches[0];
+
+
+
+        const dx =
+        touch.clientX - touchStart.x;
+
+
+
+        const dy =
+        touch.clientY - touchStart.y;
+
+
+
+        if(
+
+            Math.abs(dx) < 20 &&
+
+            Math.abs(dy) < 20
+
+        ){
+
+            return;
+
+        }
+
+
+
+
+
+        if(Math.abs(dx)>Math.abs(dy)){
+
+
+            if(dx>0){
+
+                changeDirection({
+
+                    x:1,
+
+                    y:0
+
+                });
+
+            }
+
+            else{
+
+                changeDirection({
+
+                    x:-1,
+
+                    y:0
+
+                });
+
+            }
+
+
+        }
+
+        else{
+
+
+            if(dy>0){
+
+                changeDirection({
+
+                    x:0,
+
+                    y:1
+
+                });
+
+            }
+
+            else{
+
+                changeDirection({
+
+                    x:0,
+
+                    y:-1
+
+                });
+
+            }
+
+
+        }
+
+
+
+        setTouchStart(null);
+
+
+    }
+
+
+
+
+
+
+
     function debugAI(){
 
 
@@ -111,7 +286,6 @@ export default function Game({
 
         const head =
         snake.current[0];
-
 
 
         const target =
@@ -129,10 +303,11 @@ export default function Game({
 
 
 
+
         if(Math.abs(dx)>Math.abs(dy)){
 
 
-            direction.current={
+            changeDirection({
 
                 x:
                 dx>0
@@ -143,7 +318,7 @@ export default function Game({
 
                 y:0
 
-            };
+            });
 
 
         }
@@ -151,7 +326,7 @@ export default function Game({
         else{
 
 
-            direction.current={
+            changeDirection({
 
                 x:0,
 
@@ -162,7 +337,7 @@ export default function Game({
                 :
                 -1
 
-            };
+            });
 
 
         }
@@ -174,18 +349,20 @@ export default function Game({
 
 
 
+
+
     function moveSnake(){
 
 
-        let move = {
+        let move =
+        {
             ...direction.current
         };
 
 
 
-        // corruption can slightly disrupt movement
-
         if(corruption.chaos){
+
 
             if(Math.random()<0.15){
 
@@ -196,6 +373,7 @@ export default function Game({
                 )-1;
 
 
+
                 move.y +=
                 Math.floor(
                     Math.random()*3
@@ -203,6 +381,7 @@ export default function Game({
 
 
             }
+
 
         }
 
@@ -215,13 +394,16 @@ export default function Game({
 
 
 
-        const newHead = {
+        const newHead={
+
 
             x:
-            head.x + move.x,
+            head.x+move.x,
+
 
             y:
-            head.y + move.y
+            head.y+move.y
+
 
         };
 
@@ -237,9 +419,9 @@ export default function Game({
 
             newHead.y < 0 ||
 
-            newHead.x >= WIDTH / TILE ||
+            newHead.x >= WIDTH/TILE ||
 
-            newHead.y >= HEIGHT / TILE
+            newHead.y >= HEIGHT/TILE
 
         ){
 
@@ -253,23 +435,17 @@ export default function Game({
 
 
 
+
         // self collision
 
-        for(
-            let i = 0;
-            i < snake.current.length;
-            i++
-        ){
-
-            const part =
-            snake.current[i];
+        for(const part of snake.current){
 
 
             if(
 
-                newHead.x === part.x &&
+                newHead.x===part.x &&
 
-                newHead.y === part.y
+                newHead.y===part.y
 
             ){
 
@@ -278,6 +454,7 @@ export default function Game({
                 return;
 
             }
+
 
         }
 
@@ -292,39 +469,26 @@ export default function Game({
 
 
 
-        // apple eaten
-
         if(
 
-            newHead.x === apple.current.x &&
+            newHead.x===apple.current.x &&
 
-            newHead.y === apple.current.y
+            newHead.y===apple.current.y
 
         ){
 
 
             setScore(
-                s => s + 1
+                s=>s+1
             );
+
 
 
             consumeWebsite();
 
 
 
-            apple.current = {
-
-                x:
-                Math.floor(
-                    Math.random()*20
-                ),
-
-                y:
-                Math.floor(
-                    Math.random()*20
-                )
-
-            };
+            spawnApple();
 
 
         }
@@ -355,97 +519,45 @@ export default function Game({
 
 
         ctx.clearRect(
+
             0,
+
             0,
+
             WIDTH,
+
             HEIGHT
+
         );
 
 
 
-        // background
-
-        ctx.fillStyle = "#050505";
+        ctx.fillStyle="#050505";
 
         ctx.fillRect(
 
             0,
+
             0,
+
             WIDTH,
+
             HEIGHT
 
         );
 
 
 
-        // subtle grid
-
-        ctx.strokeStyle =
-        "rgba(255,255,255,0.03)";
 
 
-        for(let x=0;x<WIDTH;x+=TILE){
+        // apple
 
-            ctx.beginPath();
+        ctx.shadowBlur=20;
 
-            ctx.moveTo(
-                x,
-                0
-            );
-
-            ctx.lineTo(
-                x,
-                HEIGHT
-            );
-
-            ctx.stroke();
-
-        }
+        ctx.shadowColor="red";
 
 
-
-        for(let y=0;y<HEIGHT;y+=TILE){
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                0,
-                y
-            );
-
-            ctx.lineTo(
-                WIDTH,
-                y
-            );
-
-            ctx.stroke();
-
-        }
-
-
-
-
-
-        // apple glow
-
-        const appleX =
-        apple.current.x*TILE + TILE/2;
-
-
-        const appleY =
-        apple.current.y*TILE + TILE/2;
-
-
-
-        ctx.shadowBlur = 20;
-
-        ctx.shadowColor =
-        "red";
-
-
-
-        ctx.fillStyle =
-        "#ff3333";
+        ctx.fillStyle="#ff3333";
 
 
         ctx.beginPath();
@@ -453,11 +565,11 @@ export default function Game({
 
         ctx.arc(
 
-            appleX,
+            apple.current.x*TILE + TILE/2,
 
-            appleY,
+            apple.current.y*TILE + TILE/2,
 
-            TILE*0.45,
+            TILE*.4,
 
             0,
 
@@ -472,14 +584,14 @@ export default function Game({
 
 
 
-        ctx.shadowBlur = 0;
+
+        ctx.shadowBlur=0;
 
 
 
 
 
-        // snake glow
-
+        // snake
 
         if(
 
@@ -490,30 +602,16 @@ export default function Game({
         ){
 
 
-
             snake.current.forEach((part,index)=>{
 
 
-                const x =
-                part.x*TILE + TILE/2;
+                ctx.shadowBlur=15;
 
-
-                const y =
-                part.y*TILE + TILE/2;
-
-
-
-                const size =
-                TILE*0.42;
-
-
-
-                ctx.shadowBlur = 15;
 
                 ctx.shadowColor =
                 index===0
                 ?
-                "#ffffff"
+                "white"
                 :
                 "#00ff88";
 
@@ -522,7 +620,7 @@ export default function Game({
                 ctx.fillStyle =
                 index===0
                 ?
-                "#ffffff"
+                "white"
                 :
                 "#00ff88";
 
@@ -531,19 +629,21 @@ export default function Game({
                 ctx.beginPath();
 
 
+
                 ctx.arc(
 
-                    x,
+                    part.x*TILE+TILE/2,
 
-                    y,
+                    part.y*TILE+TILE/2,
 
-                    size,
+                    TILE*.42,
 
                     0,
 
                     Math.PI*2
 
                 );
+
 
 
                 ctx.fill();
@@ -562,14 +662,13 @@ export default function Game({
 
 
 
-        // corruption overlay
-
 
         if(corruption.level>=2){
 
 
-            ctx.fillStyle =
-            "rgba(255,255,255,.05)";
+            ctx.fillStyle=
+            "rgba(255,255,255,.08)";
+
 
 
             for(let i=0;i<8;i++){
@@ -581,9 +680,9 @@ export default function Game({
 
                     Math.random()*HEIGHT,
 
-                    Math.random()*80,
+                    50,
 
-                    3
+                    4
 
                 );
 
@@ -595,45 +694,9 @@ export default function Game({
 
 
 
-
-        if(corruption.level>=3){
-
-
-            ctx.strokeStyle =
-            "rgba(255,0,0,.5)";
-
-
-            ctx.lineWidth=2;
-
-
-            ctx.beginPath();
-
-
-            ctx.moveTo(
-
-                Math.random()*WIDTH,
-
-                0
-
-            );
-
-
-            ctx.lineTo(
-
-                Math.random()*WIDTH,
-
-                HEIGHT
-
-            );
-
-
-            ctx.stroke();
-
-
-        }
-
-
     }
+
+
 
 
 
@@ -646,91 +709,56 @@ export default function Game({
         function key(e){
 
 
-            const current =
-            direction.current;
+            if(e.key==="ArrowUp")
 
+                changeDirection({
 
-
-            let newDirection = null;
-
-
-
-            if(e.key==="ArrowUp"){
-
-                newDirection = {
                     x:0,
+
                     y:-1
-                };
 
-            }
-
+                });
 
 
-            if(e.key==="ArrowDown"){
 
-                newDirection = {
+            if(e.key==="ArrowDown")
+
+                changeDirection({
+
                     x:0,
+
                     y:1
-                };
 
-            }
-
+                });
 
 
-            if(e.key==="ArrowLeft"){
 
-                newDirection = {
+            if(e.key==="ArrowLeft")
+
+                changeDirection({
+
                     x:-1,
+
                     y:0
-                };
 
-            }
-
+                });
 
 
-            if(e.key==="ArrowRight"){
 
-                newDirection = {
+            if(e.key==="ArrowRight")
+
+                changeDirection({
+
                     x:1,
+
                     y:0
-                };
 
-            }
+                });
 
-
-
-
-
-            if(!newDirection)
-                return;
-
-
-
-
-
-            // Prevent reversing into yourself
-
-            if(
-
-                newDirection.x === -current.x &&
-
-                newDirection.y === -current.y
-
-            ){
-
-                return;
-
-            }
-
-
-
-
-
-            direction.current =
-            newDirection;
 
 
         }
+
 
 
 
@@ -747,8 +775,7 @@ export default function Game({
 
 
 
-        const timer =
-        setInterval(()=>{
+        const timer=setInterval(()=>{
 
 
             if(started && !gameOver){
@@ -764,7 +791,6 @@ export default function Game({
 
 
             }
-
 
 
         },
@@ -786,6 +812,7 @@ export default function Game({
         )
 
         );
+
 
 
 
@@ -822,9 +849,10 @@ export default function Game({
 
 
 
+
     return (
 
-        <div>
+        <div className="game-wrapper">
 
 
             <canvas
@@ -835,11 +863,18 @@ export default function Game({
 
                 height={HEIGHT}
 
+                className="game-canvas"
+
+                onTouchStart={handleTouchStart}
+
+                onTouchEnd={handleTouchEnd}
+
             />
 
 
 
             {
+
             !started &&
 
             <button
@@ -858,6 +893,7 @@ export default function Game({
                 "START GAME"
                 }
 
+
             </button>
 
             }
@@ -869,7 +905,9 @@ export default function Game({
             gameOver &&
 
             <h2>
+
                 GAME OVER
+
             </h2>
 
             }

@@ -425,3 +425,162 @@ footer{
     text-align:center;
 
 }
+html,
+body,
+#root{
+
+    width:100%;
+
+    min-height:100%;
+
+    overflow-x:hidden;
+
+}
+
+
+
+body{
+
+    touch-action:manipulation;
+
+}
+
+
+
+main{
+
+    width:100%;
+
+    padding:20px;
+
+}
+
+
+
+.layout{
+
+    display:flex;
+
+    gap:30px;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+}
+
+
+
+.game-wrapper{
+
+    width:400px;
+
+    max-width:100%;
+
+}
+
+
+
+.game-canvas{
+
+    width:100%;
+
+    height:auto;
+
+    aspect-ratio:1 / 1;
+
+    display:block;
+
+    touch-action:none;
+
+}
+
+
+
+.side-panel{
+
+    width:250px;
+
+}
+
+
+
+
+
+.start{
+
+    margin-top:15px;
+
+    padding:12px 25px;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+}
+
+
+
+
+
+@media(max-width:700px){
+
+
+    main{
+
+        padding:10px;
+
+    }
+
+
+
+    .layout{
+
+
+        flex-direction:column;
+
+        align-items:center;
+
+
+    }
+
+
+
+    .game-wrapper{
+
+        width:95vw;
+
+    }
+
+
+
+    .side-panel{
+
+        width:95vw;
+
+    }
+
+
+
+    .card{
+
+        width:100%;
+
+        font-size:16px;
+
+    }
+
+
+
+    .start{
+
+        width:100%;
+
+        min-height:55px;
+
+        font-size:20px;
+
+    }
+
+
+}
