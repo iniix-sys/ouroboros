@@ -40,4 +40,16 @@ The goal is not just to survive, but to witness the gradual collapse of the syst
 Clone the repository:
 
 ```bash
-git clone your-repository-url
+git clone https://github.com/iniix-sys/ouroboros
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
+
+```bash
+npm run dev
+```
