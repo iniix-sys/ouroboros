@@ -41,7 +41,7 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/iniix-sys/ouroboros
-
+```
 Install dependencies:
 
 ```bash
