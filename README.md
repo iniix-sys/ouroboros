@@ -1,16 +1,43 @@
-# React + Vite
+# Ouroboros 🐍♾️
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A self-destructing Snake game built with React + Vite where the more the snake consumes, the more the website corrupts and destroys itself.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Classic Snake gameplay
+- Responsive desktop and mobile layout
+- Touch controls for mobile devices
+- Debug mode with an automatic Snake player
+- Progressive corruption system
+- Glitch effects and visual distortion
+- Website elements randomly destroyed over time
+- Smooth canvas rendering with glowing graphics
 
-## React Compiler
+## How It Works
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Ouroboros begins as a simple Snake game.
 
-## Expanding the Oxlint configuration
+As the snake eats apples, the system begins to break down:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+1. The website starts showing corruption
+2. Visual glitches appear
+3. The snake becomes unstable
+4. Controls and gameplay begin failing
+5. The website starts deleting itself
+
+The goal is not just to survive, but to witness the gradual collapse of the system.
+
+## Tech Stack
+
+- React
+- Vite
+- JavaScript
+- HTML Canvas
+- CSS
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone your-repository-url
