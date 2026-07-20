@@ -8,6 +8,8 @@ import CorruptionSystem from "./components/CorruptionSystem";
 
 import corruptText from "./utils/corruptText";
 
+import Leaderboard from "./components/Leaderboard";
+
 
 
 export default function App(){
@@ -21,6 +23,7 @@ export default function App(){
         CorruptionSystem({
             score
         });
+
 
 
 
@@ -45,25 +48,30 @@ export default function App(){
 
 
 
+
+
     const [destroying,setDestroying] = useState([]);
+
+
+
 
 
 
     function consumeWebsite(){
 
 
-        /*
-            Only allow website destruction
-            after the game itself is corrupted
-        */
-
         if(corruption.level < 4)
+
             return;
 
 
 
+
+
         const available =
+
             Object.keys(elements)
+
             .filter(
 
                 key =>
@@ -76,17 +84,30 @@ export default function App(){
 
 
 
+
+
         if(available.length === 0)
+
             return;
 
 
 
+
+
         const victim =
+
             available[
+
                 Math.floor(
+
                     Math.random()*available.length
+
                 )
+
             ];
+
+
+
 
 
 
@@ -100,31 +121,48 @@ export default function App(){
 
 
 
+
+
+
+
         setTimeout(()=>{
 
 
             setElements(old=>({
 
+
                 ...old,
 
+
                 [victim]:false
+
 
             }));
 
 
-            setDestroying(old=>
+
+
+            setDestroying(old =>
 
                 old.filter(
-                    item=>item!==victim
+
+                    item => item !== victim
+
                 )
 
             );
 
 
+
         },700);
 
 
+
     }
+
+
+
+
 
 
 
@@ -134,25 +172,40 @@ export default function App(){
         <main>
 
 
+
+
+
             {
             elements.title &&
 
+
             <Destroyable
+
                 destroying={
+
                     destroying.includes("title")
+
                 }
+
             >
 
                 <h1>
 
                     {
+
                     corruptText(
+
                         "Ouroboros",
+
                         corruption.level
+
                     )
+
                     }
 
+
                 </h1>
+
 
             </Destroyable>
 
@@ -161,23 +214,39 @@ export default function App(){
 
 
 
+
+
+
+
             {
             elements.subtitle &&
 
+
             <Destroyable
+
                 destroying={
+
                     destroying.includes("subtitle")
+
                 }
+
             >
 
                 <p>
 
+
                     {
+
                     corruptText(
+
                         "There are no winners, but all are losers.",
+
                         corruption.level
+
                     )
+
                     }
+
 
                 </p>
 
@@ -190,21 +259,21 @@ export default function App(){
 
 
 
+
+
+
+
             <div className="layout">
 
 
-                <div className="game-container">
 
 
-                    <Game
 
-                        setScore={setScore}
 
-                        consumeWebsite={consumeWebsite}
+                <div className="leaderboard-panel">
 
-                        corruption={corruption}
 
-                    />
+                    <Leaderboard />
 
 
                 </div>
@@ -212,38 +281,93 @@ export default function App(){
 
 
 
+
+
+
+
+                <div className="game-container">
+
+
+
+                    <Game
+
+
+                        setScore={setScore}
+
+
+                        consumeWebsite={consumeWebsite}
+
+
+                        corruption={corruption}
+
+
+                    />
+
+
+
+                </div>
+
+
+
+
+
+
+
+
                 <div className="side-panel">
+
+
+
 
 
                     {
                     elements.score &&
 
+
                     <Destroyable
+
                         destroying={
+
                             destroying.includes("score")
+
                         }
+
                     >
+
 
                         <div className="card">
 
-                        
 
-                        
+                            Score:
 
-                        Score:
-                        {score}
+                            {" "}
 
-                        <br/>
+                            {score}
 
-                        Corruption:
-                        {corruption.level}
+
+                            <br/>
+
+
+                            Corruption:
+
+                            {" "}
+
+                            {corruption.level}
+
+
 
                         </div>
+
 
 
                     </Destroyable>
 
                     }
+
+
+
+
+
 
 
 
@@ -251,29 +375,49 @@ export default function App(){
                     {
                     elements.status &&
 
+
                     <Destroyable
+
                         destroying={
+
                             destroying.includes("status")
+
                         }
+
                     >
+
+
 
                         <div className="card status">
 
 
+
                             {
+
                             corruptText(
+
                                 "SYSTEM ONLINE",
+
                                 corruption.level
+
                             )
+
                             }
+
 
 
                         </div>
 
 
+
                     </Destroyable>
 
                     }
+
+
+
+
+
 
 
 
@@ -281,27 +425,43 @@ export default function App(){
                     {
                     elements.instructions &&
 
+
                     <Destroyable
+
                         destroying={
+
                             destroying.includes("instructions")
+
                         }
+
                     >
+
+
 
                         <div className="card">
 
+
                             ARROW KEYS
+
 
                             <br/>
 
+
                             SURVIVE
+
 
 
                         </div>
 
 
+
                     </Destroyable>
 
                     }
+
+
+
+
 
 
 
@@ -310,22 +470,39 @@ export default function App(){
                     {
                     elements.quote &&
 
+
                     <Destroyable
+
                         destroying={
+
                             destroying.includes("quote")
+
                         }
+
                     >
+
+
 
                         <div className="card">
 
+
+
                             {
+
                             corruptText(
+
                                 "You're wasting your time.",
+
                                 corruption.level
+
                             )
+
                             }
 
+
+
                         </div>
+
 
 
                     </Destroyable>
@@ -334,7 +511,13 @@ export default function App(){
 
 
 
+
+
                 </div>
+
+
+
+
 
 
             </div>
@@ -343,30 +526,50 @@ export default function App(){
 
 
 
-                        {
+
+
+
+            {
             elements.footer &&
 
+
             <Destroyable
+
                 destroying={
+
                     destroying.includes("footer")
+
                 }
+
             >
+
 
                 <footer>
 
+
                     {
+
                     corruptText(
+
                         "Good luck.",
+
                         corruption.level
+
                     )
+
                     }
 
+
                 </footer>
+
 
 
             </Destroyable>
 
             }
+
+
+
 
 
         </main>
