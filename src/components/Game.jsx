@@ -369,13 +369,46 @@ export default function Game({
 
         /*
             Corruption chaos:
-            keeps jittering, but cannot
-            push the snake into walls.
+            fades out near walls.
         */
 
-        if(corruption.chaos){
+        const head = snake.current[0];
 
-            if(Math.random() < 0.15){
+        const GRID_WIDTH = WIDTH / TILE;
+        const GRID_HEIGHT = HEIGHT / TILE;
+
+
+        let wallDistance = Math.min(
+
+            head.x,
+
+            head.y,
+
+            GRID_WIDTH - 1 - head.x,
+
+            GRID_HEIGHT - 1 - head.y
+
+        );
+
+
+        // How far away chaos needs to be active
+        const CHAOS_DISTANCE = 3;
+
+
+        let chaosStrength =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                wallDistance / CHAOS_DISTANCE
+            )
+        );
+
+
+
+        if(corruption.chaos && chaosStrength > 0){
+
+            if(Math.random() < 0.15 * chaosStrength){
 
                 move.x +=
                 Math.floor(
