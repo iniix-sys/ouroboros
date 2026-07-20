@@ -14,6 +14,8 @@ from "../config";
 const TILE = 20;
 const WIDTH = 400;
 const HEIGHT = 400;
+const WALL_BUFFER = 1;
+
 
 export default function Game({
     setScore,
@@ -31,60 +33,129 @@ export default function Game({
     const [gameOver,setGameOver] = useState(false);
     const [touchStart,setTouchStart] = useState(null);
 
+
+    function createStartingPosition(){
+
+    const GRID_WIDTH = WIDTH / TILE;
+    const GRID_HEIGHT = HEIGHT / TILE;
+
+
+    return {
+
+        x:
+        Math.floor(
+            Math.random() *
+            (GRID_WIDTH - WALL_BUFFER * 2)
+        )
+        + WALL_BUFFER,
+
+
+        y:
+        Math.floor(
+            Math.random() *
+            (GRID_HEIGHT - WALL_BUFFER * 2)
+        )
+        + WALL_BUFFER
+
+    };
+
+}
+
+
     function resetGame(){
 
         snake.current = [
-            {
-                x:10,
-                y:10
-            }
+            createStartingPosition()
         ];
 
-        direction.current = {
-            x:1,
-            y:0
-        };
 
-        apple.current = {
-            x:15,
-            y:15
-        };
+        // random starting direction
+
+        const directions = [
+
+            {
+                x:1,
+                y:0
+            },
+
+            {
+                x:-1,
+                y:0
+            },
+
+            {
+                x:0,
+                y:1
+            },
+
+            {
+                x:0,
+                y:-1
+            }
+
+        ];
+
+
+        direction.current =
+        directions[
+            Math.floor(
+                Math.random()*directions.length
+            )
+        ];
+
+
+        spawnApple();
+
 
         setScore(0);
+
         setGameOver(false);
+
         setStarted(false);
 
+
         requestAnimationFrame(draw);
+
     }
 
     function spawnApple(){
+
+        const GRID_WIDTH = WIDTH / TILE;
+        const GRID_HEIGHT = HEIGHT / TILE;
 
         apple.current = {
 
             x:
             Math.floor(
-                Math.random()*20
-            ),
+                Math.random() *
+                (GRID_WIDTH - WALL_BUFFER * 2)
+            )
+            + WALL_BUFFER,
+
 
             y:
             Math.floor(
-                Math.random()*20
+                Math.random() *
+                (GRID_HEIGHT - WALL_BUFFER * 2)
             )
+            + WALL_BUFFER
 
         };
 
     }
+
 
     function changeDirection(newDirection){
 
         const current =
         direction.current;
 
+
         if(
 
-            newDirection.x===-current.x &&
+            newDirection.x === -current.x &&
 
-            newDirection.y===-current.y
+            newDirection.y === -current.y
 
         ){
 
@@ -92,15 +163,18 @@ export default function Game({
 
         }
 
+
         direction.current =
         newDirection;
 
     }
 
+
     function handleTouchStart(e){
 
         const touch =
         e.touches[0];
+
 
         setTouchStart({
 
@@ -112,19 +186,24 @@ export default function Game({
 
     }
 
+
     function handleTouchEnd(e){
 
         if(!touchStart)
             return;
 
+
         const touch =
         e.changedTouches[0];
+
 
         const dx =
         touch.clientX-touchStart.x;
 
+
         const dy =
         touch.clientY-touchStart.y;
+
 
         if(
 
@@ -138,15 +217,15 @@ export default function Game({
 
         }
 
+
         if(Math.abs(dx)>Math.abs(dy)){
+
 
             if(dx>0){
 
                 changeDirection({
-
                     x:1,
                     y:0
-
                 });
 
             }
@@ -154,10 +233,8 @@ export default function Game({
             else{
 
                 changeDirection({
-
                     x:-1,
                     y:0
-
                 });
 
             }
@@ -166,13 +243,12 @@ export default function Game({
 
         else{
 
+
             if(dy>0){
 
                 changeDirection({
-
                     x:0,
                     y:1
-
                 });
 
             }
@@ -180,38 +256,45 @@ export default function Game({
             else{
 
                 changeDirection({
-
                     x:0,
                     y:-1
-
                 });
 
             }
 
         }
 
+
         setTouchStart(null);
 
     }
+
 
     function debugAI(){
 
         if(!DEBUG_MODE)
             return;
 
+
         const head =
         snake.current[0];
+
 
         const target =
         apple.current;
 
+
         const dx =
         target.x-head.x;
+
 
         const dy =
         target.y-head.y;
 
+
+
         if(Math.abs(dx)>Math.abs(dy)){
+
 
             changeDirection({
 
@@ -230,6 +313,7 @@ export default function Game({
 
         else{
 
+
             changeDirection({
 
                 x:0,
@@ -247,11 +331,19 @@ export default function Game({
 
     }
 
+
     function moveSnake(){
 
         let move={
             ...direction.current
         };
+
+
+        /*
+            Corruption chaos.
+            Still allows glitches,
+            but prevents impossible movement.
+        */
 
         if(corruption.chaos){
 
@@ -262,6 +354,7 @@ export default function Game({
                     Math.random()*3
                 )-1;
 
+
                 move.y +=
                 Math.floor(
                     Math.random()*3
@@ -271,28 +364,74 @@ export default function Game({
 
         }
 
+
+        // Prevent diagonal corruption movement
+
+        if(move.x !== 0 && move.y !== 0){
+
+            if(Math.random()<0.5){
+
+                move = {
+                    x: move.x,
+                    y: 0
+                };
+
+            }
+            else{
+
+                move = {
+                    x:0,
+                    y:move.y
+                };
+
+            }
+
+        }
+
+
+        // corruption cannot freeze snake
+
+        if(move.x === 0 && move.y === 0){
+
+            move = {
+                ...direction.current
+            };
+
+        }
+
+
         const head =
         snake.current[0];
 
-        const newHead={
+
+        const newHead = {
 
             x:
-            head.x+move.x,
+            head.x + move.x,
+
 
             y:
-            head.y+move.y
+            head.y + move.y
 
         };
 
+
+        const GRID_WIDTH = WIDTH / TILE;
+        const GRID_HEIGHT = HEIGHT / TILE;
+
+
+
+        // BUFFER ZONE WALL COLLISION
+
         if(
 
-            newHead.x<0 ||
+            newHead.x < WALL_BUFFER ||
 
-            newHead.y<0 ||
+            newHead.y < WALL_BUFFER ||
 
-            newHead.x>=WIDTH/TILE ||
+            newHead.x >= GRID_WIDTH - WALL_BUFFER ||
 
-            newHead.y>=HEIGHT/TILE
+            newHead.y >= GRID_HEIGHT - WALL_BUFFER
 
         ){
 
@@ -301,13 +440,14 @@ export default function Game({
 
         }
 
+
         for(const part of snake.current){
 
             if(
 
-                newHead.x===part.x &&
+                newHead.x === part.x &&
 
-                newHead.y===part.y
+                newHead.y === part.y
 
             ){
 
@@ -317,14 +457,14 @@ export default function Game({
             }
 
         }
+                snake.current.unshift(newHead);
 
-        snake.current.unshift(newHead);
 
         if(
 
-            newHead.x===apple.current.x &&
+            newHead.x === apple.current.x &&
 
-            newHead.y===apple.current.y
+            newHead.y === apple.current.y
 
         ){
 
@@ -332,7 +472,9 @@ export default function Game({
                 s=>s+1
             );
 
+
             consumeWebsite();
+
 
             spawnApple();
 
@@ -346,10 +488,13 @@ export default function Game({
 
     }
 
+
+
     function draw(){
 
         const ctx =
         canvasRef.current.getContext("2d");
+
 
         ctx.clearRect(
             0,
@@ -358,7 +503,9 @@ export default function Game({
             HEIGHT
         );
 
+
         ctx.fillStyle="#050505";
+
 
         ctx.fillRect(
             0,
@@ -367,11 +514,19 @@ export default function Game({
             HEIGHT
         );
 
+
+
+        // Apple
+
         ctx.shadowBlur=20;
+
         ctx.shadowColor="red";
+
         ctx.fillStyle="#ff3333";
 
+
         ctx.beginPath();
+
 
         ctx.arc(
 
@@ -387,9 +542,16 @@ export default function Game({
 
         );
 
+
         ctx.fill();
 
+
+
         ctx.shadowBlur=0;
+
+
+
+        // Snake
 
         if(
 
@@ -401,23 +563,28 @@ export default function Game({
 
             snake.current.forEach((part,index)=>{
 
+
                 ctx.shadowBlur=15;
 
-                ctx.shadowColor=
+
+                ctx.shadowColor =
                 index===0
                 ?
                 "white"
                 :
                 "#00ff88";
 
-                ctx.fillStyle=
+
+                ctx.fillStyle =
                 index===0
                 ?
                 "white"
                 :
                 "#00ff88";
+
 
                 ctx.beginPath();
+
 
                 ctx.arc(
 
@@ -433,20 +600,31 @@ export default function Game({
 
                 );
 
+
                 ctx.fill();
+
 
             });
 
         }
 
+
+
         ctx.shadowBlur=0;
+
+
+
+        // Corruption visual effects
 
         if(corruption.level>=2){
 
-            ctx.fillStyle=
+
+            ctx.fillStyle =
             "rgba(255,255,255,.08)";
 
+
             for(let i=0;i<8;i++){
+
 
                 ctx.fillRect(
 
@@ -460,11 +638,15 @@ export default function Game({
 
                 );
 
+
             }
 
         }
 
+
     }
+
+
 
     useEffect(()=>{
 
@@ -472,58 +654,88 @@ export default function Game({
 
     },[]);
 
+
+
     useEffect(()=>{
+
 
         function key(e){
 
-            if(e.key==="ArrowUp")
+
+            if(e.key==="ArrowUp"){
 
                 changeDirection({
                     x:0,
                     y:-1
                 });
 
-            if(e.key==="ArrowDown")
+            }
+
+
+
+            if(e.key==="ArrowDown"){
 
                 changeDirection({
                     x:0,
                     y:1
                 });
 
-            if(e.key==="ArrowLeft")
+            }
+
+
+
+            if(e.key==="ArrowLeft"){
 
                 changeDirection({
                     x:-1,
                     y:0
                 });
 
-            if(e.key==="ArrowRight")
+            }
+
+
+
+            if(e.key==="ArrowRight"){
 
                 changeDirection({
                     x:1,
                     y:0
                 });
 
+            }
+
+
         }
+
+
 
         window.addEventListener(
             "keydown",
             key
         );
 
+
+
         const timer=setInterval(()=>{
+
 
             if(started && !gameOver){
 
+
                 debugAI();
+
 
                 moveSnake();
 
+
                 draw();
+
 
             }
 
+
         },
+
 
         DEBUG_MODE
 
@@ -540,16 +752,22 @@ export default function Game({
 
         );
 
+
+
         return()=>{
+
 
             window.removeEventListener(
                 "keydown",
                 key
             );
 
+
             clearInterval(timer);
 
+
         };
+
 
     },[
         started,
@@ -557,9 +775,13 @@ export default function Game({
         corruption
     ]);
 
+
+
+
     return (
 
         <div className="game-wrapper">
+
 
             <canvas
 
@@ -577,8 +799,9 @@ export default function Game({
 
             />
 
-            {
 
+
+            {
             !started &&
 
             <button
@@ -590,34 +813,28 @@ export default function Game({
             >
 
                 {
-
                 DEBUG_MODE
-
                 ?
-
                 "START DEBUG GAME"
-
                 :
-
                 "START GAME"
-
                 }
 
             </button>
 
             }
 
-            {
 
+
+            {
             gameOver &&
 
             <>
 
                 <h2>
-
                     GAME OVER
-
                 </h2>
+
 
                 <button
 
@@ -631,9 +848,11 @@ export default function Game({
 
                 </button>
 
+
             </>
 
             }
+
 
         </div>
 
