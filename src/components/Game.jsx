@@ -968,24 +968,99 @@ export default function Game({
         async function submitScore(){
 
 
-        if(submitted)
-            return;
+
+            if(submitted)
+                return;
 
 
 
-        await supabase
+            const name =
+            playerName.trim() || "Anonymous";
 
-        .from("leaderboard")
 
-        .insert({
 
-            username:
-            playerName.trim() || "Anonymous",
+            const {
+                data:existing
+            } = await supabase
 
-            score:
-            finalScore
+            .from("leaderboard")
 
-        });
+            .select("score")
+
+            .eq(
+                "username",
+                name
+            )
+
+            .single();
+
+
+
+
+
+            if(existing){
+
+
+                if(finalScore <= existing.score){
+
+
+                    setSubmitted(true);
+
+                    return;
+
+
+                }
+
+
+
+
+                await supabase
+
+                .from("leaderboard")
+
+                .update({
+
+                    score:finalScore
+
+                })
+
+                .eq(
+
+                    "username",
+
+                    name
+
+                );
+
+
+
+            }
+
+            else{
+
+
+                await supabase
+
+                .from("leaderboard")
+
+                .insert({
+
+                    username:name,
+
+                    score:finalScore
+
+                });
+
+
+            }
+
+
+
+
+            setSubmitted(true);
+
+
+        }
 
 
 
