@@ -13,12 +13,6 @@ import {
 from "../config";
 
 
-import {
-    supabase
-}
-from "../supabase";
-
-
 
 const TILE = 20;
 const WIDTH = 400;
@@ -32,13 +26,18 @@ export default function Game({
 
     consumeWebsite,
 
-    corruption
+    corruption,
+
+    onGameOver,
+
+    onReset
 
 }){
 
 
     const canvasRef = useRef(null);
 
+    const glitchMove = useRef(false);
 
     const snake = useRef([]);
 
@@ -59,21 +58,6 @@ export default function Game({
 
     const [touchStart,setTouchStart] =
     useState(null);
-
-
-
-    // leaderboard
-
-    const [playerName,setPlayerName] =
-    useState("Anonymous");
-
-
-    const [finalScore,setFinalScore] =
-    useState(0);
-
-
-    const [submitted,setSubmitted] =
-    useState(false);
 
 
 
@@ -179,16 +163,13 @@ export default function Game({
         setScore(0);
 
 
-        setFinalScore(0);
-
-
         setGameOver(false);
 
 
-        setSubmitted(false);
-
-
         setStarted(false);
+
+
+        onReset();
 
 
 
@@ -490,180 +471,268 @@ export default function Game({
     }
         function moveSnake(){
 
+            // Reset glitch flag every frame
+            glitchMove.current = false;
 
-        let move = {
-            ...direction.current
-        };
+            let move = {
+                ...direction.current
+            };
 
+            const head =
+            snake.current[0];
 
+            const GRID_WIDTH =
+            WIDTH / TILE;
 
-        const head =
-        snake.current[0];
+            const GRID_HEIGHT =
+            HEIGHT / TILE;
 
+            /*
+                Ouroboros corruption:
+                Chaos is strongest in open space,
+                but fades near walls.
+            */
 
-
-        const GRID_WIDTH =
-        WIDTH / TILE;
-
-
-        const GRID_HEIGHT =
-        HEIGHT / TILE;
-
-
-
-        /*
-            Ouroboros corruption:
-            chaos is strongest in open space,
-            but fades near walls.
-        */
-
-
-        const wallDistance =
-        Math.min(
-
-            head.x,
-
-            head.y,
-
-            GRID_WIDTH - 1 - head.x,
-
-            GRID_HEIGHT - 1 - head.y
-
-        );
-
-
-
-        const CHAOS_DISTANCE = 3;
-
-
-
-        const chaosStrength =
-        Math.max(
-
-            0,
-
+            const wallDistance =
             Math.min(
 
-                1,
+                head.x,
 
-                wallDistance / CHAOS_DISTANCE
+                head.y,
 
-            )
+                GRID_WIDTH - 1 - head.x,
 
-        );
+                GRID_HEIGHT - 1 - head.y
 
+            );
 
+            const CHAOS_DISTANCE = 3;
 
+            const chaosStrength =
+            Math.max(
 
+                0,
 
-        if(
+                Math.min(
 
-            corruption.chaos &&
+                    1,
 
-            chaosStrength > 0
+                    wallDistance / CHAOS_DISTANCE
 
-        ){
+                )
 
+            );
+
+            /*
+                Corruption only causes LEGAL snake turns.
+                No backwards movement.
+                No diagonal movement.
+                No two-tile jumps.
+            */
 
             if(
 
-                Math.random() <
-                0.15 * chaosStrength
+                corruption.chaos &&
+
+                Math.random() < 0.15 * chaosStrength
 
             ){
 
+                glitchMove.current = true;
 
-                move.x +=
-                Math.floor(
-                    Math.random()*3
-                ) - 1;
+                const current =
+                direction.current;
 
+                let options = [];
 
+                if(current.x !== 0){
 
-                move.y +=
-                Math.floor(
-                    Math.random()*3
-                ) - 1;
+                    // Moving horizontally.
+                    // Can continue, turn up, or turn down.
 
+                    options = [
+
+                        {
+                            x:current.x,
+                            y:0
+                        },
+
+                        {
+                            x:0,
+                            y:-1
+                        },
+
+                        {
+                            x:0,
+                            y:1
+                        }
+
+                    ];
+
+                }
+
+                else{
+
+                    // Moving vertically.
+                    // Can continue, turn left, or turn right.
+
+                    options = [
+
+                        {
+                            x:0,
+                            y:current.y
+                        },
+
+                        {
+                            x:-1,
+                            y:0
+                        },
+
+                        {
+                            x:1,
+                            y:0
+                        }
+
+                    ];
+
+                }
+
+                /*
+                    Only allow glitch turns that don't land
+                    on the snake's own body. Otherwise the
+                    head can end up overlapping a body segment,
+                    and the very next normal frame would treat
+                    that leftover overlap as a fatal collision.
+                */
+
+                const safeOptions =
+                options.filter(
+                    opt => {
+
+                        const testX =
+                        head.x + opt.x;
+
+                        const testY =
+                        head.y + opt.y;
+
+                        for(
+                            let i = 1;
+                            i < snake.current.length;
+                            i++
+                        ){
+
+                            const part =
+                            snake.current[i];
+
+                            if(
+                                testX === part.x &&
+                                testY === part.y
+                            ){
+                                return false;
+                            }
+
+                        }
+
+                        return true;
+
+                    }
+                );
+
+                if(safeOptions.length > 0){
+
+                    move =
+
+                    safeOptions[
+
+                        Math.floor(
+
+                            Math.random() *
+
+                            safeOptions.length
+
+                        )
+
+                    ];
+
+                }
+
+                else{
+
+                    // No safe glitch turn available this frame.
+                    glitchMove.current = false;
+
+                }
 
             }
 
+            const newHead = {
 
-        }
+                x:
+                head.x + move.x,
 
+                y:
+                head.y + move.y
 
+            };
 
-
-
-
-        const newHead = {
-
-
-            x:
-            head.x + move.x,
-
-
-            y:
-            head.y + move.y
-
-
-        };
-
-
-
-
-
-
-        // wall collision
-
-        if(
-
-            newHead.x < 0 ||
-
-            newHead.y < 0 ||
-
-            newHead.x >= GRID_WIDTH ||
-
-            newHead.y >= GRID_HEIGHT
-
-        ){
-
-
-            endGame();
-
-            return;
-
-
-        }
-
-
-
-
-
-
-        // self collision
-
-        for(const part of snake.current){
-
+            // Wall collision
 
             if(
 
-                newHead.x === part.x &&
+                newHead.x < 0 ||
 
-                newHead.y === part.y
+                newHead.y < 0 ||
+
+                newHead.x >= GRID_WIDTH ||
+
+                newHead.y >= GRID_HEIGHT
 
             ){
-
 
                 endGame();
-
                 return;
-
 
             }
 
+            /*
+                Ignore self-collision ONLY
+                during corrupted glitch movement.
+            */
 
-        }
+            if(!glitchMove.current){
+
+                for(
+
+                    let i = 1;
+
+                    i < snake.current.length;
+
+                    i++
+
+                ){
+
+                    const part =
+                    snake.current[i];
+
+                    if(
+
+                        newHead.x === part.x &&
+
+                        newHead.y === part.y
+
+                    ){
+
+                        endGame();
+                        return;
+
+                    }
+
+                }
+
+            }
+
+            
+
 
 
 
@@ -726,10 +795,10 @@ export default function Game({
 
 
 
-        setFinalScore(score);
-
-
         setGameOver(true);
+
+
+        onGameOver(score);
 
 
     }
@@ -864,6 +933,14 @@ export default function Game({
 
                 ?
 
+                glitchMove.current
+
+                ?
+
+                "#00ffff"
+
+                :
+
                 "white"
 
                 :
@@ -878,6 +955,14 @@ export default function Game({
                 index === 0
 
                 ?
+
+                glitchMove.current
+
+                ?
+
+                "#66ffff"
+
+                :
 
                 "white"
 
@@ -965,110 +1050,6 @@ export default function Game({
 
 
     }
-        async function submitScore(){
-
-
-
-            if(submitted)
-                return;
-
-
-
-            const name =
-            playerName.trim() || "Anonymous";
-
-
-
-            const {
-                data:existing
-            } = await supabase
-
-            .from("leaderboard")
-
-            .select("score")
-
-            .eq(
-                "username",
-                name
-            )
-
-            .single();
-
-
-
-
-
-            if(existing){
-
-
-                if(finalScore <= existing.score){
-
-
-                    setSubmitted(true);
-
-                    return;
-
-
-                }
-
-
-
-
-                await supabase
-
-                .from("leaderboard")
-
-                .update({
-
-                    score:finalScore
-
-                })
-
-                .eq(
-
-                    "username",
-
-                    name
-
-                );
-
-
-
-            }
-
-            else{
-
-
-                await supabase
-
-                .from("leaderboard")
-
-                .insert({
-
-                    username:name,
-
-                    score:finalScore
-
-                });
-
-
-            }
-
-
-
-
-            setSubmitted(true);
-
-
-        }
-
-
-
-        setSubmitted(true);
-
-
-    }
-
 
 
 
@@ -1095,6 +1076,16 @@ export default function Game({
 
 
         function key(e){
+
+
+            if(
+                e.key === "ArrowUp" ||
+                e.key === "ArrowDown" ||
+                e.key === "ArrowLeft" ||
+                e.key === "ArrowRight"
+            ){
+                e.preventDefault();
+            }
 
 
 
@@ -1284,221 +1275,58 @@ export default function Game({
 
         <div className="game-wrapper">
 
-
-
-            <canvas
-
-
-                ref={canvasRef}
-
-
-                width={WIDTH}
-
-
-                height={HEIGHT}
-
-
-                className="game-canvas"
-
-
-
-                onTouchStart={handleTouchStart}
-
-
-
-                onTouchEnd={handleTouchEnd}
-
-
-
-            />
-
-
-
-
-
-
-
-            {
-
-            !started && !gameOver &&
-
-
             <button
 
+                className="reset-button"
 
-                className="start"
-
-
-                onClick={()=>setStarted(true)}
-
+                onClick={resetGame}
 
             >
 
-
-                {
-
-                DEBUG_MODE
-
-                ?
-
-                "START DEBUG GAME"
-
-                :
-
-                "START GAME"
-
-
-                }
-
+                RESET
 
             </button>
 
 
-            }
+            <canvas
 
+                ref={canvasRef}
 
+                width={WIDTH}
 
+                height={HEIGHT}
 
+                className="game-canvas"
 
+                onTouchStart={handleTouchStart}
+
+                onTouchEnd={handleTouchEnd}
+
+            />
 
 
             {
+            !started && !gameOver &&
 
-            gameOver &&
+            <button
 
+                className="start"
 
-            <div className="score-submit">
+                onClick={()=>setStarted(true)}
 
-
-
-                <h2>
-
-                    GAME OVER
-
-                </h2>
-
-
-
-
-                <h3>
-
-                    Score: {finalScore}
-
-                </h3>
-
-
-
-
-
+            >
 
                 {
-
-                !submitted &&
-
-
-                <>
-
-
-                    <input
-
-
-                        value={playerName}
-
-
-                        onChange={e=>
-
-                            setPlayerName(
-                                e.target.value
-                            )
-
-                        }
-
-
-                        placeholder="Name"
-
-
-                    />
-
-
-
-
-
-                    <button
-
-
-                        className="start"
-
-
-                        onClick={submitScore}
-
-
-                    >
-
-
-                        SUBMIT SCORE
-
-
-                    </button>
-
-
-                </>
-
-
+                DEBUG_MODE
+                ?
+                "START DEBUG GAME"
+                :
+                "START GAME"
                 }
 
-
-
-
-
-
-
-                {
-
-                submitted &&
-
-
-                <p>
-
-                    SCORE SUBMITTED
-
-                </p>
-
-
-                }
-
-
-
-
-
-
-                <button
-
-
-                    className="start"
-
-
-                    onClick={resetGame}
-
-
-                >
-
-
-                    RESTART
-
-
-                </button>
-
-
-
-
-
-            </div>
-
+            </button>
 
             }
-
-
-
 
 
         </div>

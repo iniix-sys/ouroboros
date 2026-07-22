@@ -12,7 +12,9 @@ from "../supabase";
 
 
 
-export default function Leaderboard(){
+export default function Leaderboard({
+    refreshKey
+}){
 
 
     const [scores,setScores] =
@@ -75,98 +77,42 @@ export default function Leaderboard(){
 
 
 
-    useEffect(()=>{
-
+    useEffect(() => {
 
         loadScores();
 
+        const channel = supabase
+            .channel("leaderboard-live")
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "leaderboard"
+                    },
+                    () => {
+                        loadScores();
+                    }
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+            };
+
+        }, []);
 
 
 
-        const channel =
+    useEffect(() => {
 
-        supabase
+        if(refreshKey === undefined)
+            return;
 
-        .channel(
-            "leaderboard-live"
-        )
+        loadScores();
 
-        .on(
+    }, [refreshKey]);
 
-            "postgres_changes",
-
-            {
-
-                event:"INSERT",
-
-                schema:"public",
-
-                table:"leaderboard"
-
-            },
-
-
-            (payload)=>{
-
-
-                setScores(old=>{
-
-
-                    const updated = [
-
-                        payload.new,
-
-                        ...old
-
-                    ];
-
-
-
-                    return updated
-
-                    .sort(
-
-                        (a,b)=>
-
-                        b.score-a.score
-
-                    )
-
-                    .slice(
-                        0,
-                        10
-                    );
-
-
-                });
-
-
-            }
-
-
-        )
-
-        .subscribe();
-
-
-
-
-
-
-        return()=>{
-
-
-            supabase
-
-            .removeChannel(
-                channel
-            );
-
-
-        };
-
-
-    },[]);
 
 
 

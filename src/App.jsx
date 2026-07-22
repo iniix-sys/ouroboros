@@ -10,12 +10,123 @@ import corruptText from "./utils/corruptText";
 
 import Leaderboard from "./components/Leaderboard";
 
+import { supabase } from "./supabase";
+
 
 
 export default function App(){
 
 
     const [score,setScore] = useState(0);
+
+
+    const [gameOver,setGameOver] = useState(false);
+
+    const [finalScore,setFinalScore] = useState(0);
+
+    const [playerName,setPlayerName] = useState("");
+
+    const [submitted,setSubmitted] = useState(false);
+
+    const [leaderboardRefreshKey,setLeaderboardRefreshKey] = useState(0);
+
+
+    function handleGameOver(finishedScore){
+
+        setFinalScore(finishedScore);
+
+        setGameOver(true);
+
+    }
+
+
+    function handleReset(){
+
+        setGameOver(false);
+
+        setFinalScore(0);
+
+        setPlayerName("");
+
+        setSubmitted(false);
+
+    }
+
+
+    async function submitScore(){
+
+        if(submitted)
+            return;
+
+        const name =
+        playerName.trim() || "Anonymous";
+
+        const {
+            data:existing
+        } = await supabase
+
+        .from("leaderboard")
+
+        .select("score")
+
+        .eq(
+            "username",
+            name
+        )
+
+        .single();
+
+        if(existing){
+
+            if(finalScore <= existing.score){
+
+                setSubmitted(true);
+
+                return;
+
+            }
+
+            await supabase
+
+            .from("leaderboard")
+
+            .update({
+
+                score:finalScore
+
+            })
+
+            .eq(
+
+                "username",
+
+                name
+
+            );
+
+        }
+
+        else{
+
+            await supabase
+
+            .from("leaderboard")
+
+            .insert({
+
+                username:name,
+
+                score:finalScore
+
+            });
+
+        }
+
+        setLeaderboardRefreshKey(key => key + 1);
+
+        setSubmitted(true);
+
+    }
 
 
 
@@ -273,7 +384,72 @@ export default function App(){
                 <div className="leaderboard-panel">
 
 
-                    <Leaderboard />
+                    <Leaderboard refreshKey={leaderboardRefreshKey} />
+
+
+                    {
+                    gameOver &&
+
+                    <div className="score-submit">
+
+                        <h2>
+                            GAME OVER
+                        </h2>
+
+
+                        <h3>
+                            Score: {finalScore}
+                        </h3>
+
+
+                        {
+                        !submitted &&
+
+                        <>
+
+                            <input
+
+                                value={playerName}
+
+                                onChange={e =>
+                                    setPlayerName(e.target.value)
+                                }
+
+                                placeholder="Name"
+
+                            />
+
+
+                            <button
+
+                                className="start"
+
+                                onClick={submitScore}
+
+                            >
+
+                                SUBMIT SCORE
+
+                            </button>
+
+                        </>
+
+                        }
+
+
+                        {
+                        submitted &&
+
+                        <p>
+                            SCORE SUBMITTED
+                        </p>
+
+                        }
+
+
+                    </div>
+
+                    }
 
 
                 </div>
@@ -299,6 +475,12 @@ export default function App(){
 
 
                         corruption={corruption}
+
+
+                        onGameOver={handleGameOver}
+
+
+                        onReset={handleReset}
 
 
                     />
